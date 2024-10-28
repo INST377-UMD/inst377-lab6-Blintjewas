@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaflet Lab6</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""/>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""></script>
+
+    <style>
+        #map {
+            height: 300px; 
+        }
+        #markers-info {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>Map of US</h2>
+    <div id="map"></div>
+    <div id="markers-info"></div>
+
+    <script>
+        // Initialize the map
+        var map = L.map('map', {
+            center: [32.5, -95],
+            zoom: 2.5
+        });
+
+        // Add tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        // Generate random number in a range
+        function getRandomInRange(from, to, fixed) {
+            return (Math.random() * (to - from) + from).toFixed(fixed) * 1;
+        }
+
+        // Get locality from API
+        async function getLocality(lat, lng) {
+            const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`);
+            const data = await response.json();
+            return data.locality || 'Locality not found';
+        }
+
+        // Add a random marker
+        async function addRandomMarker(markerNumber) {
+            var randomLat = getRandomInRange(30, 35, 3);
+            var randomLng = getRandomInRange(-100, -90, 3);
+            var locality = await getLocality(randomLat, randomLng);
+            
+            // Create marker
+            L.marker([randomLat, randomLng]).addTo(map);
+            // Update marker info
+            document.getElementById('markers-info').innerHTML += `
+                <div>
+                    <h3>Marker ${markerNumber}: Latitude: ${randomLat}, Longitude: ${randomLng}</h3>
+                    Locality: ${locality}<br>
+                </div>
+            `;
+        }
+
+        // Add markers
+        async function addMarkers() {
+            for (let i = 1; i <= 3; i++) {
+                await addRandomMarker(i);
+            }
+        }
+
+        addMarkers();
+    </script>
+</body>
+</html>
